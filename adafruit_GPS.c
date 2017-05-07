@@ -16,9 +16,12 @@ All text above must be included in any redistribution
 #include <stdint.h>
 #include <math.h>
 #include <msp430x16x.h>
+#ifdef _DEBUG
+  #include <__cross_studio_io.h>
+#endif
 
 // how long are max NMEA lines to parse?
-#define MAXLINELENGTH 120
+#define MAXLINELENGTH 200
 
 // we double buffer: read one line in and leave one for the main program
 volatile char line1[MAXLINELENGTH];
@@ -30,6 +33,8 @@ volatile char *currentline;
 volatile char *lastline;
 volatile uint8_t recvdflag;
 volatile uint8_t inStandbyMode;
+
+static uint8_t paused;
 
 /************** PROTOTYPE FONCTIONS PRIVEE *****************/
 static uint8_t parseResponse(char *response);
@@ -288,14 +293,16 @@ uint8_t parse(char *nmea, GPS_Data *data) {
   return 0;
 }
 
-char read(GPS_Data *data) {
+char read(void) {
   char c = 0;
   
-  if (data->paused) return c;
+  if (paused) return c;
 
   /* LIRE LE BUFFER ? (READY?), not ready, return c;
      c = BUFFER;
   */
+  while (!(IFG1 & URXIFG0));
+  c = RXBUF0;
 
   //Serial.print(c);
 
@@ -331,7 +338,7 @@ char read(GPS_Data *data) {
 // Initialization code used by all constructor types
 void gpsDataInit(GPS_Data *data) {
   recvdflag   = 0;
-  data->paused      = 0;
+  paused      = 0;
   lineidx     = 0;
   currentline = line1;
   lastline    = line2;
@@ -349,18 +356,21 @@ void sendCommand(const char *str) {
   int i = 0;
 
   while (str[i] != '\0') {
-    while (!(IFG1 & UTXIFG1));
+    while (!(IFG1 & UTXIFG0));
     U1TXBUF = str[i];
     i++;
   }
+  #ifdef _DEBUG
+    debug_printf("\nGPS: command sent.\n", RXBUF0);
+  #endif
 }
 
 uint8_t newNMEAreceived(void) {
   return recvdflag;
 }
 
-void pause(uint8_t p, GPS_Data *data) {
-  data->paused = p;
+void pause(uint8_t p) {
+  paused = p;
 }
 
 char *lastNMEA(void) {

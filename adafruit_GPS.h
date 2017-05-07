@@ -80,7 +80,7 @@ All text above must be included in any redistribution
 
 // how long to wait when we're looking for a response
 #define MAXWAITSENTENCE 5
-// DONE
+
 typedef struct GPS_Data
 {
   uint8_t hour, minute, seconds, year, month, day;
@@ -97,10 +97,8 @@ typedef struct GPS_Data
   char lat, lon, mag;
   uint8_t fix;
   uint8_t fixquality, satellites;
-  char paused;
 } GPS_Data;
 
-// DONE
 /**
  * Données concernant le logger
  */
@@ -129,12 +127,12 @@ void gpsDataInit(GPS_Data *data);
 // Envoi d'une commande au GPS
 void sendCommand(const char *);
 // Met en la lecture, la fonction read renvoi 0
-void pause(uint8_t b, GPS_Data *data);
+void pause(uint8_t b);
 // Converti de l'hexadecimal vers decimal
 uint8_t parseHex(char c);
 
 // Sert à lire les char recu du GPS
-char read(GPS_Data *data);
+char read(void);
 // Renvoi 1 si NMEA détecté
 uint8_t parse(char *, GPS_Data *data);
 // Attend la phrase passé pour un temps voulu
