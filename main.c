@@ -5,6 +5,9 @@
 #include <msp430x16x.h>
 #include "adafruit_GPS.h"
 #include "ports.h"
+#include "uart.h"
+
+GPS_Data data;
 
 void main(void)
 {
@@ -20,52 +23,75 @@ void main(void)
     for (i = 0xFF; i > 0; i--);           // Time for flag to set
   }
   while ((IFG1 & OFIFG) != 0);          // OSCFault flag still set?  
-  
-  initPorts();
-
-  // Reset de l'écran
-  P4OUT = 0x04; // Reset ?ran
-  for (i = 0x0F; i > 0; i--);
-  P4OUT = 0x06; // Remise ?ran
-
 
   BCSCTL2 |= SELM1+SELS;                // MCLK = SMCLK = XT2 (safe)
-  UCTL0 |= SWRST;                      // Initialize USART state machine
-  UCTL0 = CHAR;                         // 8-bit character
-  UTCTL0 = SSEL1;                       // UCLK = ACLK
-  UBR00 = 0x41;                         // BRCLK/BAUD = DECIMALE, mettre en HEXA
-  UBR10 = 0x03;                         //
-  UMCTL0 = 0x92;                        // no modulation
-  ME1 |= UTXE0 + URXE0;                 // Enable USART0 TXD/RXD
-  IE1 |= URXIE0;                         // Enable USART0 RX interrupt
-  UCTL0 &= ~SWRST;                      // End initialize USART state machine
 
-  UCTL1 |= SWRST;                      // Initialize USART state machine
-  /* Initialisation  de UTXD1 et URXD1 */
-  UCTL1 = CHAR;                         // 8-bit character
-  UTCTL1 = SSEL1;                       // UCLK = ACLK
-  UBR01 = 0x41;                         // BRCLK/BAUD = DECIMALE, mettre en HEXA
-  UBR11 = 0x03;                         
-  UMCTL1 = 0x92;                        // no modulation
-  ME2 |= UTXE1 + URXE1;                 // Enable USART1 TXD/RXD
-  IE2 |= URXIE1;                        // Enable USART1 RX interrupt
-  UCTL1 &= ~SWRST;                      // End initialize USART state machine
+  initPorts();
+  initUart0();
+  initUart1();
 
-  _EINT();
+  P1OUT = 0x00; // Eteint les leds (chiant qd allumé)
 
-  for (;;)                             
+  gpsDataInit(&data);
+  setCmdSwitch(GPS);
+  setGPS(1);
+  wakeup();
+
+  sendCommand(PMTK_SET_BAUD_9600);
+  sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+  sendCommand(PMTK_SET_NMEA_OUTPUT_OFF);
+  sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+
+  _EINT(); // Interrupt ON
+
+  for (;;)
   {
+    if (newNMEAreceived())
+    {
+      _DINT();
+      #ifdef _DEBUG
+        debug_printf("\nNew NMEA: %s\n", lastNMEA());
+        debug_printf("\nNew NMEA: %s\n", lastNMEA());
+      #endif
+      if (parse(lastNMEA(), &data))
+      {
+        #ifdef _DEBUG
+          debug_printf("\nParsed: hours(%d) minutes(%d) seconds(%d) year(%d) month(%d) day(%d)\
+                        milliseconds(%d)\n\
+                        latitude(%f) longitude(%f)\n\
+                        latitude_fixed(%d) longitude_fixed(%d)\n\
+                        latitudeDegrees(%f) longitudeDegrees(%f)\n\
+                        geoidheight(%f) altitude(%f)\n\
+                        speed(%f) angle(%f) magvariation(%f) HDOP(%f)\n\
+                        lat(%d) lon(%d) mag(%d)\n\
+                        fix(%d)\n\
+                        fixquality(%d) satellites(%d)\n",
+                        data.hour, data.minute, data.seconds, data.year, data.month, data.day,
+                        data.milliseconds,
+                        data.latitude, data.longitude,
+                        data.latitude_fixed, data.longitude_fixed,
+                        data.latitudeDegrees, data.longitudeDegrees,
+                        data.geoidheight, data.altitude,
+                        data.speed, data.angle, data.magvariation, data.HDOP,
+                        data.lat, data.lon, data.mag,
+                        data.fix,
+                        data.fixquality, data.satellites);
+        #endif
+      }
+      _EINT();
+    }
   }
 }
 
 void usart0_rx (void) __interrupt[UART0RX_VECTOR] 
 {
-  while ((IFG2 & UTXIFG1) == 0);
-  TXBUF1 =RXBUF0;
+  //while ((IFG2 & UTXIFG1) == 0);
+  //TXBUF1 = RXBUF0;
+  read();
 }
 
 void usart1_rx (void) __interrupt[UART1RX_VECTOR] 
 {
-  while ((IFG1 & UTXIFG0) == 0);
-  TXBUF0= RXBUF1;
+  //while ((IFG1 & UTXIFG0) == 0);
+  //TXBUF0 = RXBUF1;
 }
