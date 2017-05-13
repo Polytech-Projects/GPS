@@ -23,6 +23,7 @@ All text above must be included in any redistribution
 // how long are max NMEA lines to parse?
 #define MAXLINELENGTH 200
 
+// VOLATILE BEGIN
 // we double buffer: read one line in and leave one for the main program
 volatile char line1[MAXLINELENGTH];
 volatile char line2[MAXLINELENGTH];
@@ -33,6 +34,8 @@ volatile char *currentline;
 volatile char *lastline;
 volatile uint8_t recvdflag;
 volatile uint8_t inStandbyMode;
+
+// VOLATILE END
 
 static uint8_t paused;
 
@@ -67,22 +70,35 @@ uint8_t parse(char *nmea, GPS_Data *data) {
   // do checksum check
 
   // first look if we even have one
+  // N*41C
   if (nmea[strlen(nmea)-4] == '*') {
+    #ifdef _DEBUG
+      debug_printf("parse: checksum available (got '*')\n");
+      debug_printf("parse: checksum %c\n", nmea[strlen(nmea)-3]);
+      debug_printf("parse: checksum %c\n", nmea[strlen(nmea)-2]);
+    #endif
     sum = parseHex(nmea[strlen(nmea)-3]) * 16;
     sum += parseHex(nmea[strlen(nmea)-2]);
     
     // check checksum 
-    for (i=2; i < (strlen(nmea)-4); i++) {
+    for (i=1; i < (strlen(nmea)-4); i++) {
       sum ^= nmea[i];
     }
     if (sum != 0) {
       // bad checksum :(
+      #ifdef _DEBUG
+        debug_printf("parse: bad checksum\n");
+      #endif
       return 0;
     }
+    #ifdef _DEBUG
+      debug_printf("parse: good checksum\n");
+    #endif
   }
   // look for a few common sentences
   if (strstr(nmea, "$GPGGA")) {
     // found GGA
+    data->type = GGA;
     p = nmea;
     // get time
     p = strchr(p, ',')+1;
@@ -186,6 +202,7 @@ uint8_t parse(char *nmea, GPS_Data *data) {
   }
   if (strstr(nmea, "$GPRMC")) {
    // found RMC
+    data->type = RMC;
     p = nmea;
 
     // get time
@@ -343,6 +360,7 @@ void gpsDataInit(GPS_Data *data) {
   currentline = line1;
   lastline    = line2;
 
+  data->type = INCONNU;
   data->hour = data->minute = data->seconds = data->year = data->month = data->day =
     data->fixquality = data->satellites = 0; // uint8_t
   data->lat = data->lon = data->mag = 0; // char
@@ -357,9 +375,13 @@ void sendCommand(const char *str) {
 
   while (str[i] != '\0') {
     while (!(IFG1 & UTXIFG0));
-    U1TXBUF = str[i];
+    U0TXBUF = str[i];
     i++;
   }
+  while (!(IFG1 & UTXIFG0));
+    U0TXBUF = '\r';
+  while (!(IFG1 & UTXIFG0));
+    U0TXBUF = '\n';
   #ifdef _DEBUG
     debug_printf("\nGPS: command sent.\n", RXBUF0);
   #endif
