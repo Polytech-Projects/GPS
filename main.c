@@ -8,6 +8,11 @@
 #include "uart.h"
 
 GPS_Data data;
+volatile char g = 0;
+char trame[200];
+volatile int compteur = 0;
+volatile int ok = 0;
+char *type; // A VIRER
 
 void main(void)
 {
@@ -41,22 +46,32 @@ void main(void)
   sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
   sendCommand(PMTK_SET_NMEA_OUTPUT_OFF);
   sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  debug_printf("\nMONSLASHR:\r");
 
   _EINT(); // Interrupt ON
 
   for (;;)
   {
-    if (newNMEAreceived())
+    if (ok)
     {
       _DINT();
-      #ifdef _DEBUG
-        debug_printf("\nNew NMEA: %s\n", lastNMEA());
-        debug_printf("\nNew NMEA: %s\n", lastNMEA());
-      #endif
-      if (parse(lastNMEA(), &data))
+      debug_printf("\nMATRAME %s\n", trame);
+      ok = 0;
+
+
+if (parse(trame, &data))
       {
         #ifdef _DEBUG
-          debug_printf("\nParsed: hours(%d) minutes(%d) seconds(%d) year(%d) month(%d) day(%d)\
+        if (data.type == GGA)
+        {
+          type = "gga";
+        }
+        else if (data.type == RMC)
+          type = "rmc";
+        else
+          type = "inc";
+          debug_printf("\nParsed: type: %s\n\
+                        hours(%d) minutes(%d) seconds(%d) year(%d) month(%d) day(%d)\n\
                         milliseconds(%d)\n\
                         latitude(%f) longitude(%f)\n\
                         latitude_fixed(%d) longitude_fixed(%d)\n\
@@ -66,6 +81,7 @@ void main(void)
                         lat(%d) lon(%d) mag(%d)\n\
                         fix(%d)\n\
                         fixquality(%d) satellites(%d)\n",
+                        type,
                         data.hour, data.minute, data.seconds, data.year, data.month, data.day,
                         data.milliseconds,
                         data.latitude, data.longitude,
@@ -78,6 +94,17 @@ void main(void)
                         data.fixquality, data.satellites);
         #endif
       }
+
+
+_EINT();
+    }
+    if (newNMEAreceived())
+    {
+      _DINT();
+      #ifdef _DEBUG
+        debug_printf("\nNew NMEA: %s\n", lastNMEA());
+      #endif
+      //MACHING ICI
       _EINT();
     }
   }
@@ -87,7 +114,27 @@ void usart0_rx (void) __interrupt[UART0RX_VECTOR]
 {
   //while ((IFG2 & UTXIFG1) == 0);
   //TXBUF1 = RXBUF0;
-  read();
+  //read();
+  while (!(IFG1 & URXIFG0));
+  g = RXBUF0;
+
+  if (g == '$')
+  {
+    compteur = 1;
+    trame[0] = g;
+    while (g != '\n')
+    {
+      while (!(IFG1 & URXIFG0));
+      g = RXBUF0;
+      if (compteur < 200)
+      {
+        trame[compteur] = g;
+        compteur++;
+      }
+    }
+    trame[compteur-1] = '\0';
+    ok = 1;
+  }
 }
 
 void usart1_rx (void) __interrupt[UART1RX_VECTOR] 
