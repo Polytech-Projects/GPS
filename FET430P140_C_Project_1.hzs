@@ -1,0 +1,57 @@
+<!DOCTYPE CrossStudio_for_MSP430_Session_File>
+<session>
+ <Autos>
+  <Watches active="0" />
+ </Autos>
+ <Bookmarks/>
+ <Breakpoints/>
+ <ExecutionCountWindow/>
+ <Memory1>
+  <MemoryWindow autoEvaluate="0" addressText="" numColumns="8" sizeText="" dataSize="1" radix="16" addressSpace="" />
+ </Memory1>
+ <Memory2>
+  <MemoryWindow autoEvaluate="0" addressText="" numColumns="8" sizeText="" dataSize="1" radix="16" addressSpace="" />
+ </Memory2>
+ <Memory3>
+  <MemoryWindow autoEvaluate="0" addressText="" numColumns="8" sizeText="" dataSize="1" radix="16" addressSpace="" />
+ </Memory3>
+ <Memory4>
+  <MemoryWindow autoEvaluate="0" addressText="" numColumns="8" sizeText="" dataSize="1" radix="16" addressSpace="" />
+ </Memory4>
+ <Project>
+  <ProjectSessionItem path="FET430P140_C_Project_1" name="unnamed" />
+  <ProjectSessionItem path="FET430P140_C_Project_1;FET430P140_C_Project_1" name="unnamed" />
+  <ProjectSessionItem path="FET430P140_C_Project_1;FET430P140_C_Project_1;Source Files" name="unnamed" />
+  <ProjectSessionItem path="FET430P140_C_Project_1;FET430P140_C_Project_1;System Files" name="unnamed" />
+ </Project>
+ <Register1>
+  <RegisterWindow unsignedDisplays="" asciiDisplays="" octalDisplays="" openGroups="" visibleGroups="" decimalDisplays="" binaryDisplays="" />
+ </Register1>
+ <Register2>
+  <RegisterWindow unsignedDisplays="" asciiDisplays="" octalDisplays="" openGroups="" visibleGroups="" decimalDisplays="" binaryDisplays="" />
+ </Register2>
+ <Register3>
+  <RegisterWindow unsignedDisplays="" asciiDisplays="" octalDisplays="" openGroups="" visibleGroups="" decimalDisplays="" binaryDisplays="" />
+ </Register3>
+ <Register4>
+  <RegisterWindow unsignedDisplays="" asciiDisplays="" octalDisplays="" openGroups="" visibleGroups="" decimalDisplays="" binaryDisplays="" />
+ </Register4>
+ <SourceNavigatorWindow/>
+ <TraceWindow>
+  <Trace wrap="Yes" type="1" enabled="Yes" />
+ </TraceWindow>
+ <Watch1>
+  <Watches active="1" />
+ </Watch1>
+ <Watch2>
+  <Watches active="0" />
+ </Watch2>
+ <Watch3>
+  <Watches active="0" />
+ </Watch3>
+ <Watch4>
+  <Watches active="0" />
+ </Watch4>
+ <Files/>
+ <MSP430CrossStudioWindow activeProject="FET430P140_C_Project_1" moduleClockControl="24791" autoConnectTarget="" debugSearchFileMap="" fileDialogInitialDirectory="" fileDialogDefaultFilter="*.c;*.h" haltTimerA="false" autoConnectCapabilities="0" haltTimerB="false" holdBasicTimer="false" generalClockControl="46" debugSearchPath="" buildConfiguration="Debug" />
+</session>

@@ -6,6 +6,10 @@
 #include "adafruit_GPS.h"
 #include "ports.h"
 #include "uart.h"
+#include "led.h"
+#include "pad.h"
+#include "tools.h"
+#include "ecran.h"
 
 GPS_Data data;
 
@@ -83,6 +87,77 @@ void main(void)
   }
 }
 
+void menu(void){
+  
+}
+
+void test(void){
+  int bs=0x1F,lbs=0x1F,debug;
+  
+  //setup
+  WDTCTL = WDTPW + WDTHOLD;             // Stop watchdog timer
+  P1DIR |= 0x1F;                        // Set P1.0 to output direction
+  P2DIR |= 0x00;
+  P1OUT=0x00;
+
+  for (;;)                              
+  { 
+    bs=P2IN;
+    if(bs != lbs){
+      //si le bouton n'est pas a la position nulle
+      if(bs!=PAD_NULL){
+        //allumer toutes les leds en cliquant au centre
+        if(bs==PAD_CENTRE){
+          if(P1OUT != TOUTES_LED){
+            all_led(1);
+          }
+          else all_led(0);
+        }
+        //allumer la led du haut avec le bouton haut
+        if(bs==PAD_HAUT){
+          if(P1OUT!=LED_HAUT){
+            led_haut(1);
+          } else {
+            led_haut(0);
+          }
+        }
+        //allumer la led de gauche ...
+        if(bs==PAD_GAUCHE){
+          if(P1OUT!=LED_GAUCHE){
+            led_gauche(1);
+          } else {
+            led_gauche(0);
+          }
+        }
+        //allumer la led de droite
+        if(bs==PAD_DROIT){
+          if(P1OUT!=LED_DROITE){
+            led_droite(1);
+          } else {
+            led_droite(0);
+          }
+        }
+        //allumer la led du bas
+        if(bs==PAD_BAS){
+          if(P1OUT!=LED_BAS){
+            led_bas(1);
+          } else {
+            led_bas(0);
+          }
+        }
+        /*
+        if(P1OUT==0 && bs!=0x1F){
+          P1OUT=~bs;
+        }else{
+          P1OUT=0;
+        }*/
+      }
+      delay(10000);
+    }
+    lbs= bs;
+
+  }
+}
 void usart0_rx (void) __interrupt[UART0RX_VECTOR] 
 {
   //while ((IFG2 & UTXIFG1) == 0);
