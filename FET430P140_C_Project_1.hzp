@@ -12,6 +12,14 @@
       </file>
       <file file_name="ports.h" Name="ports.h" />
       <file file_name="uart.h" Name="uart.h" />
+      <file file_name="FET430P140_C_Project_1.hzp" Name="FET430P140_C_Project_1.hzp" />
+      <file file_name="led.c" Name="led.c" />
+      <file file_name="led.h" Name="led.h" />
+      <file file_name="pad.h" Name="pad.h" />
+      <file file_name="tools.c" Name="tools.c" />
+      <file file_name="tools.h" Name="tools.h" />
+      <file file_name="ecran.c" Name="ecran.c" />
+      <file file_name="ecran.h" Name="ecran.h" />
     </folder>
     <folder Name="System Files" >
       <configuration filter="xml" Name="Common" />
