@@ -25,6 +25,7 @@ void main(void)
   {
     IFG1 &= ~OFIFG;                       // Clear OSCFault flag
     IFG2 &= ~OFIFG;                       // Clear OSCFault flag
+    P2IFG = 0;
     for (i = 0xFF; i > 0; i--);           // Time for flag to set
   }
   while ((IFG1 & OFIFG) != 0);          // OSCFault flag still set?  
@@ -132,4 +133,35 @@ void usart1_rx (void) __interrupt[UART1RX_VECTOR]
 {
   //while ((IFG1 & UTXIFG0) == 0);
   //TXBUF0 = RXBUF1;
+}
+
+void bouton_push (void) __interrupt[PORT2_VECTOR] 
+{
+  if(P2IFG & 0x01) // Push
+  {
+    if((P2IES & 0x01)); // Pressé
+    else; // Relaché
+  }
+  if(P2IFG & 0x02) // Top
+  {
+    if((P2IES & 0x02));
+    else;
+  }
+  if(P2IFG & 0x04) // Bottom
+  {
+    if((P2IES & 0x04));
+    else;
+  }
+  if(P2IFG & 0x08) // Left
+  {
+    if((P2IES & 0x08));
+    else;
+  }
+  if(P2IFG & 0x10){ // Right
+    if((P2IES & 0x10));
+    else;
+  }
+
+  P2IES ^= P2IFG; // inversion des transition
+  P2IFG = 0;
 }

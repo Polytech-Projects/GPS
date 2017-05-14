@@ -19,18 +19,18 @@ void initPorts(void)
   P1DIR |= 0x1F;
   /* Ports P2.0 à P2.4 en entré
    * Respectivement, PUSH, TOP, BOTTOM, LEFT, RIGHT
+   * Activation des interruptions
    */
   P2DIR &= 0xE0;
+  P2IES |= 0x1F;
+  P2IE |= 0x1F;
   /* Ports P4.0, P4.1, P4.2 en sortie
    * Respectivement, ENABLE_GPS, RESET_LCD, CMD_SWITCH
    */
   P4DIR |= 0x07;
-/*
-  P3SEL |= 0xC0;                        // P3.6,7 = USART1 option select
-  P3DIR |= 0x20;                        // P3.6 = output direction
-  P3SEL |= 0x30;                        // P3.4,5 = USART0 TXD/RXD
-  P3DIR |= 0x10;                        // P3.4 output direction
-*/
+
+  /* Initialisation de l'USART 1 et 2
+   */
   P3SEL |= 0xF0;
   P3DIR |= 0x50; // ATTENTION PEUT ETER 0x30 (WUT?)
   P3DIR &= 0x5F;
