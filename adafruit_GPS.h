@@ -81,6 +81,9 @@ All text above must be included in any redistribution
 // how long to wait when we're looking for a response
 #define MAXWAITSENTENCE 5
 
+typedef enum TYPE_TRAME {
+  GGA, RMC, INCONNU
+} TYPE_TRAME;
 typedef struct GPS_Data
 {
   uint8_t hour, minute, seconds, year, month, day;
@@ -97,6 +100,7 @@ typedef struct GPS_Data
   char lat, lon, mag;
   uint8_t fix;
   uint8_t fixquality, satellites;
+  TYPE_TRAME type;
 } GPS_Data;
 
 /**

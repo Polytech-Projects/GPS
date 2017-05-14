@@ -12,6 +12,14 @@
       </file>
       <file file_name="ports.h" Name="ports.h" />
       <file file_name="uart.h" Name="uart.h" />
+      <file file_name="ecran.c" Name="ecran.c" />
+      <file file_name="ecran.h" Name="ecran.h" />
+      <file file_name="pad.h" Name="pad.h" />
+      <file file_name="led.h" Name="led.h" />
+      <file file_name="tools.c" Name="tools.c" />
+      <file file_name="tools.h" Name="tools.h" />
+      <file file_name="GPS.c" Name="GPS.c" />
+      <file file_name="GPS.h" Name="GPS.h" />
     </folder>
     <folder Name="System Files" >
       <configuration filter="xml" Name="Common" />
@@ -20,6 +28,7 @@
         <configuration Name="Common" file_type="Section Placement" />
       </file>
     </folder>
+    <configuration Target="MSP430F169" msp430_identify_string="MSP430F169;Preliminary_MSP430F16x" linker_memory_map_file="$(StudioDir)/targets/MSP430F169.xml" msp430_debug_interface="JTAG" Name="Debug" build_use_hardware_multiplier="Yes" />
   </project>
   <configuration build_debug_information="Yes" Name="Debug" />
   <configuration optimize_jump_chaining="Yes" optimize_block_locality="Yes" optimize_tail_merging="Yes" c_preprocessor_definitions="NDEBUG" optimize_cross_calling="Standard" build_debug_information="No" optimize_jump_threading="Yes" Name="Release" optimize_dead_code="Yes" optimize_cross_jumping="Yes" optimize_copy_propagation="Yes" />
