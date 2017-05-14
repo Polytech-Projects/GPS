@@ -29,7 +29,8 @@ static uint8_t inStandbyMode;
 static uint8_t parseResponse(char *response);
 static uint8_t isAlpha(char c);
 static uint8_t isDigit(char c);
-static uint16_t calculOrientation(float x1, float y1, float x2, float y2);
+static float degToRad(float x); 
+static float radToDeg(float x);
 
 void setGPS(uint8_t on)
 {
@@ -359,6 +360,33 @@ uint8_t parseHex(char c) {
     return 0;
 }
 
+float updateDistance(float la1, float lo1, float la2, float lo2)
+{
+  float radius = 6317e3; // moyenne du rayon de la terre en mètre
+  float deltaLat, deltaLon, a, c;
+
+  // Calcul des delta avant conversion en radian
+  deltaLat = degToRad(la2-la1);
+  deltaLon = degToRad(lo2-lo1);
+
+  // Besoin de tout avoir en radian
+  la1 = degToRad(la1);
+  lo1 = degToRad(lo1);
+  la2 = degToRad(la2);
+  lo2 = degToRad(lo2);
+
+  // Racine carré de la moitié de la longueur de l'accord entre les 2 points
+  a = sin(deltaLat/2)*sin(deltaLat/2) + cos(la1)*cos(la2) * sin(deltaLon/2)*sin(deltaLon/2);
+  // Distance angulaire en radian
+  c = 2*atan2(sqrt(a), sqrt(1-a));
+  return radius*c;
+}
+
+uint16_t calculOrientation(float x1, float y1, float x2, float y2)
+{
+  return atan2((y1-y2), (x1-x2)) * 180 / 3.14159265;
+}
+
 uint8_t waitForSentence(const char *wait4me, uint8_t max) {
   char str[20];
   char *nmea;
@@ -470,8 +498,12 @@ static uint8_t isDigit(char c)
   return (c >= '0' && c <= '9') ? 1 : 0;
 }
 
-static uint16_t calculOrientation(float x1, float y1, float x2, float y2)
+static float degToRad(float x)
 {
-  float radians = atan2((y1-y2), (x1-x2));
-  return radians * (180.0/radians);
+    return x / 180 * 3.14159265;
+}
+ 
+static float radToDeg(float x)
+{
+    return x / 3.14159265 * 180;
 }
