@@ -134,7 +134,7 @@ void pause(uint8_t b);
 // Converti de l'hexadecimal vers decimal
 uint8_t parseHex(char c);
 // Renvoi la distance en kms/m ? entre 2 points
-float updateDistance(float la1, float lo1, float la2, float lo2);
+float calculDistance(float la1, float lo1, float la2, float lo2);
 uint16_t calculOrientation(float x1, float y1, float x2, float y2);
 // Renvoi 1 si NMEA détecté
 uint8_t parse(char *, GPS_Data *data);

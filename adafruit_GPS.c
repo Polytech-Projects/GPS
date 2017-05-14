@@ -360,7 +360,7 @@ uint8_t parseHex(char c) {
     return 0;
 }
 
-float updateDistance(float la1, float lo1, float la2, float lo2)
+float calculDistance(float la1, float lo1, float la2, float lo2)
 {
   float radius = 6317e3; // moyenne du rayon de la terre en mètre
   float deltaLat, deltaLon, a, c;
