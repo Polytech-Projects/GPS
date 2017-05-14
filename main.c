@@ -59,7 +59,7 @@ void main(void)
       ok = 0;
 
 
-if (parse(trame, &data))
+      if (parse(trame, &data))
       {
         #ifdef _DEBUG
         if (data.type == GGA)
@@ -96,15 +96,6 @@ if (parse(trame, &data))
       }
 
 
-_EINT();
-    }
-    if (newNMEAreceived())
-    {
-      _DINT();
-      #ifdef _DEBUG
-        debug_printf("\nNew NMEA: %s\n", lastNMEA());
-      #endif
-      //MACHING ICI
       _EINT();
     }
   }
