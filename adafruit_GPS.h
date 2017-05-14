@@ -122,10 +122,6 @@ void setGPS(uint8_t on);
  * n'éteint pas complétement le GPS, garde le fix? */
 uint8_t wakeup(void);
 uint8_t standby(void);
-// Renvoi le dernier NMEA reçu
-char *lastNMEA(void);
-// Sert pour la fonction waitForSentence
-uint8_t newNMEAreceived(void);
 // Initialisation de la structure GPS
 void gpsDataInit(GPS_Data *data);
 // Envoi d'une commande au GPS
@@ -134,9 +130,6 @@ void sendCommand(const char *);
 void pause(uint8_t b);
 // Converti de l'hexadecimal vers decimal
 uint8_t parseHex(char c);
-
-// Sert à lire les char recu du GPS
-char read(void);
 // Renvoi 1 si NMEA détecté
 uint8_t parse(char *, GPS_Data *data);
 // Attend la phrase passé pour un temps voulu
