@@ -17,7 +17,7 @@ volatile char g = 0;
 char trame[200];
 volatile int compteur = 0;
 volatile int ok = 0;
-char *type; // A VIRER
+char *type;
 
 void main(void)
 {
@@ -31,11 +31,12 @@ void main(void)
   {
     IFG1 &= ~OFIFG;                       // Clear OSCFault flag
     IFG2 &= ~OFIFG;                       // Clear OSCFault flag
+    P2IFG = 0;
     for (i = 0xFF; i > 0; i--);           // Time for flag to set
   }
   while ((IFG1 & OFIFG) != 0);          // OSCFault flag still set?
 
-  BCSCTL2 |= SELM1+SELS;                // MCLK = SMCLK = XT2 (safe)
+  BCSCTL2 |= SELM1+SELS+DIVM1;                // MCLK = SMCLK = XT2 (safe)
 
   initPorts();
   initUart0();
@@ -69,17 +70,14 @@ void main(void)
   sendCommandScreen("000C0000");
   MainMenu();
 
-  for(;;);
-  /*for (;;)
+  for (;;)
   {
     if (ok)
     {
       _DINT();
       debug_printf("\nMATRAME %s\n", trame);
       ok = 0;
-
-
-if (parse(trame, &data))
+      if (parse(trame, &data))
       {
         #ifdef _DEBUG
         if (data.type == GGA)
@@ -114,20 +112,9 @@ if (parse(trame, &data))
                         data.fixquality, data.satellites);
         #endif
       }
-
-
-_EINT();
-    }
-    if (newNMEAreceived())
-    {
-      _DINT();
-      #ifdef _DEBUG
-        debug_printf("\nNew NMEA: %s\n", lastNMEA());
-      #endif
-      //MACHING ICI
       _EINT();
     }
-  }*/
+  }
 }
 
 void usart0_rx (void) __interrupt[UART0RX_VECTOR]
@@ -136,7 +123,6 @@ void usart0_rx (void) __interrupt[UART0RX_VECTOR]
   //-----------------------------
   //while ((IFG2 & UTXIFG1) == 0);
   //TXBUF1 = RXBUF0;
-  //-----------------------------
   while (!(IFG1 & URXIFG0));
   g = RXBUF0;
 
@@ -167,64 +153,32 @@ void usart1_rx (void) __interrupt[UART1RX_VECTOR]
   //TXBUF0 = RXBUF1;
 }
 
-void test(void){
-  int bs=0x1F,lbs=0x1F,debug;
-
-  //setup
-  WDTCTL = WDTPW + WDTHOLD;             // Stop watchdog timer
-  P1DIR |= 0x1F;                        // Set P1.0 to output direction
-  P2DIR |= 0x00;
-  P1OUT=0x00;
-
-  for (;;)
+void bouton_push (void) __interrupt[PORT2_VECTOR] 
+{
+  if(P2IFG & 0x01) // Push
   {
-    bs=P2IN;
-    if(bs != lbs){
-      //si le bouton n'est pas a la position nulle
-      if(bs!=PAD_NULL){
-        //allumer toutes les leds en cliquant au centre
-        if(bs==PAD_CENTRE){
-          if(P1OUT != TOUTES_LED){
-            all_led(1);
-          }
-          else all_led(0);
-        }
-        //allumer la led du haut avec le bouton haut
-        if(bs==PAD_HAUT){
-          if(P1OUT!=LED_HAUT){
-            led_haut(1);
-          } else {
-            led_haut(0);
-          }
-        }
-        //allumer la led de gauche ...
-        if(bs==PAD_GAUCHE){
-          if(P1OUT!=LED_GAUCHE){
-            led_gauche(1);
-          } else {
-            led_gauche(0);
-          }
-        }
-        //allumer la led de droite
-        if(bs==PAD_DROIT){
-          if(P1OUT!=LED_DROITE){
-            led_droite(1);
-          } else {
-            led_droite(0);
-          }
-        }
-        //allumer la led du bas
-        if(bs==PAD_BAS){
-          if(P1OUT!=LED_BAS){
-            led_bas(1);
-          } else {
-            led_bas(0);
-          }
-        }
-      }
-      delay(30);
-    }
-    lbs= bs;
-
+    if((P2IES & 0x01)) P1OUT = 0x01; // Pressé
+    else; // Relaché
   }
+  if(P2IFG & 0x02) // Top
+  {
+    if((P2IES & 0x02)) P1OUT = 0x02;
+    else;
+  }
+  if(P2IFG & 0x04) // Bottom
+  {
+    if((P2IES & 0x04)) P1OUT = 0x04;
+    else;
+  }
+  if(P2IFG & 0x08) // Left
+  {
+    if((P2IES & 0x08));
+    else;
+  }
+  if(P2IFG & 0x10){ // Right
+    if((P2IES & 0x10));
+    else;
+  }
+  P2IES ^= P2IFG; // inversion des transition
+  P2IFG = 0;
 }
