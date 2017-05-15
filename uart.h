@@ -7,14 +7,14 @@
 
 void initUart0(void)
 {
-	UCTL0 |= SWRST;                      // Initialize USART state machine
+  UCTL0 |= SWRST;                       // Initialize USART state machine
   UCTL0 = CHAR;                         // 8-bit character
   UTCTL0 = SSEL1;                       // UCLK = ACLK
-  UBR00 = BAUD_RATE_LSB;                         // BRCLK/BAUD = DECIMALE, mettre en HEXA
-  UBR10 = BAUD_RATE_MSB;                         //
+  UBR00 = BAUD_RATE_LSB;                // BRCLK/BAUD = DECIMALE, mettre en HEXA
+  UBR10 = BAUD_RATE_MSB;                //
   UMCTL0 = MODULATION;
   ME1 |= UTXE0 + URXE0;                 // Enable USART0 TXD/RXD
-  IE1 |= URXIE0;                         // Enable USART0 RX interrupt
+  IE1 |= URXIE0;                        // Enable USART0 RX interrupt
   UCTL0 &= ~SWRST;                      // End initialize USART state machine
 }
 void initUart1(void)

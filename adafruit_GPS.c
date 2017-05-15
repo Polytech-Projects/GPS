@@ -201,8 +201,7 @@ uint8_t parse(char *nmea, GPS_Data *data) {
     return 1;
   }
   if (strstr(nmea, "$GPRMC")) {
-    // found RMC
-    // 
+   // found RMC
     data->type = RMC;
     p = nmea;
 

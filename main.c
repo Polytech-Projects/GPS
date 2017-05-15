@@ -6,6 +6,11 @@
 #include "adafruit_GPS.h"
 #include "ports.h"
 #include "uart.h"
+#include "ecran.h"
+#include "pad.h"
+#include "led.h"
+#include "tools.h"
+
 
 GPS_Data data;
 volatile char g = 0;
@@ -17,18 +22,19 @@ char *type;
 void main(void)
 {
   unsigned int i;
+  int j;
   /* Le watchdog doit ?re d?activ?pour ne pas provoquer de red?arrage */
   WDTCTL = WDTPW + WDTHOLD;             // Stop WDT (watch dog timer)
   BCSCTL1 &= ~XT2OFF;                   // XT2on
 
-  do 
+  do
   {
     IFG1 &= ~OFIFG;                       // Clear OSCFault flag
     IFG2 &= ~OFIFG;                       // Clear OSCFault flag
     P2IFG = 0;
     for (i = 0xFF; i > 0; i--);           // Time for flag to set
   }
-  while ((IFG1 & OFIFG) != 0);          // OSCFault flag still set?  
+  while ((IFG1 & OFIFG) != 0);          // OSCFault flag still set?
 
   BCSCTL2 |= SELM1+SELS+DIVM1;                // MCLK = SMCLK = XT2 (safe)
 
@@ -36,10 +42,16 @@ void main(void)
   initUart0();
   initUart1();
 
+  // Reset de l'�cran
+  P4OUT = 0x04; // Reset �ran
+  for (i = 0xFF; i > 0; i--);
+  P4OUT = 0x06; // Remise �ran
+
   P1OUT = 0x00; // Eteint les leds (chiant qd allumé)
 
   gpsDataInit(&data);
   setCmdSwitch(GPS);
+  //setCmdSwitch(USB);
   setGPS(1);
   wakeup();
 
@@ -49,6 +61,14 @@ void main(void)
   sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
 
   _EINT(); // Interrupt ON
+
+  led_centre(1);
+  delay(500);
+  //reverse screen
+  screenReverse();
+  // stop scroll
+  sendCommandScreen("000C0000");
+  MainMenu();
 
   for (;;)
   {
@@ -97,11 +117,12 @@ void main(void)
   }
 }
 
-void usart0_rx (void) __interrupt[UART0RX_VECTOR] 
+void usart0_rx (void) __interrupt[UART0RX_VECTOR]
 {
+  //POUR QUE LECRAN MARCHE EN USB
+  //-----------------------------
   //while ((IFG2 & UTXIFG1) == 0);
   //TXBUF1 = RXBUF0;
-
   while (!(IFG1 & URXIFG0));
   g = RXBUF0;
 
@@ -124,8 +145,10 @@ void usart0_rx (void) __interrupt[UART0RX_VECTOR]
   }
 }
 
-void usart1_rx (void) __interrupt[UART1RX_VECTOR] 
+void usart1_rx (void) __interrupt[UART1RX_VECTOR]
 {
+  //POUR QUE LECRAN MARCHE EN USB
+  //-----------------------------
   //while ((IFG1 & UTXIFG0) == 0);
   //TXBUF0 = RXBUF1;
 }
@@ -156,7 +179,6 @@ void bouton_push (void) __interrupt[PORT2_VECTOR]
     if((P2IES & 0x10));
     else;
   }
-
   P2IES ^= P2IFG; // inversion des transition
   P2IFG = 0;
 }
