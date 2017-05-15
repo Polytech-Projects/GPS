@@ -20,6 +20,7 @@
       <file file_name="tools.h" Name="tools.h" />
       <file file_name="GPS.c" Name="GPS.c" />
       <file file_name="GPS.h" Name="GPS.h" />
+      <file file_name="led.c" Name="led.c" />
     </folder>
     <folder Name="System Files" >
       <configuration filter="xml" Name="Common" />

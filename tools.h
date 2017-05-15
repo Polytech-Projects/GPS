@@ -1,6 +1,6 @@
 void delay(int delay);
 char * chartoHex(char * c);
-char * decToHex(int decimal);
+char * decToHex(int decimal, char * hexadecimalnum, int taille_tab);
 //boucle jusqu'a que le pad soit actionné
 // 0 : centre
 // 1 : haut

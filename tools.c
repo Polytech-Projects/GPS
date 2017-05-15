@@ -27,12 +27,13 @@ char * chartoHex(char * c){
   return result;
 }
 
-char * decToHex(int decimal){
-    long quotient, remainder;
+char * decToHex(int decimal, char * hexadecimalnum, int taille_tab){
+    long quotient, remainder, complethexa;
     int i, j = 0;
-    char hexadecimalnum[100];
+    char tab_tmp[50];
 
     quotient = decimal;
+    complethexa=0;
 
     while (quotient != 0)
     {
@@ -43,7 +44,27 @@ char * decToHex(int decimal){
             hexadecimalnum[j++] = 55 + remainder;
         quotient = quotient / 16;
     }
+    j++;
+    hexadecimalnum[j]='\0';
 
+    if((j-1)%4<4){
+        complethexa = 4-((j-1)%4);
+    }
+    for(i=j-1; i<j+(complethexa-1);i++){
+        hexadecimalnum[i]='0';
+        printf("%c %d\n", hexadecimalnum[i],i);
+    }
+    printf("%s\n", hexadecimalnum);
+    j=j+complethexa;
+    hexadecimalnum[j]='\0';
+
+    for(i=0; i<taille_tab; i++){
+        tab_tmp[i] = hexadecimalnum[i];
+    }
+    printf("%s\n", tab_tmp);
+    for(i=0; i<j; i++){
+        hexadecimalnum[i]=tab_tmp[j-(2+i)];
+    }
     return hexadecimalnum;
 }
 

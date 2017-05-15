@@ -34,8 +34,9 @@ void MainMenu(void){
   changeBackground("31A9");
 
   //bleu bleu ciel au centre
-  sendCommandScreen("00040004002C004000540040002C0018002C00405B93");
-
+  sendCommandScreen("00040004002C0040005400400040002C004000545B93");
+  sendCommandScreen("FFCE0000000000800014A3A3");
+  sendCommandScreen("FFCE0000006200800080A3A3");
 
       //TEXTES
 
@@ -43,20 +44,21 @@ void MainMenu(void){
   sendCommandScreen("FF7E31A9");
   sendCommandScreen("FF7FFFFF");
 
-  //ligne 1 colonne 5
-  sendCommandScreen("FFE400010002");
+  sendCommandScreen("00064D454E55205052494E434950414C00");
+  //ligne 3 colonne 2
+  sendCommandScreen("FFE400040002");
   //text "enregistrement"
   debug_printf("envoi du texte enregistrement...");
   sendCommandScreen("0006456E72656769737472656D656E7400");
   // navigation
-  sendCommandScreen("FFE400050000");
+  sendCommandScreen("FFE400070000");
   sendCommandScreen("00064E6176692D00");
-  sendCommandScreen("FFE400060000");
+  sendCommandScreen("FFE400080000");
   sendCommandScreen("0006676174696F6E00");
   //boussole
-  sendCommandScreen("FFE40005000D");
+  sendCommandScreen("FFE40007000D");
   sendCommandScreen("0006426F752D00");
-  sendCommandScreen("FFE40006000D");
+  sendCommandScreen("FFE40008000D");
   sendCommandScreen("000673736F6C6500");
 
   //Choisissez le mode

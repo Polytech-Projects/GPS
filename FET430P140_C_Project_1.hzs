@@ -22,7 +22,6 @@
   <ProjectSessionItem path="FET430P140_C_Project_1" name="unnamed" />
   <ProjectSessionItem path="FET430P140_C_Project_1;FET430P140_C_Project_1" name="unnamed" />
   <ProjectSessionItem path="FET430P140_C_Project_1;FET430P140_C_Project_1;Source Files" name="unnamed" />
-  <ProjectSessionItem path="FET430P140_C_Project_1;FET430P140_C_Project_1;System Files" name="unnamed" />
  </Project>
  <Register1>
   <RegisterWindow unsignedDisplays="" asciiDisplays="" octalDisplays="" openGroups="" visibleGroups="" decimalDisplays="" binaryDisplays="" />
@@ -52,19 +51,15 @@
  <Watch4>
   <Watches active="0" />
  </Watch4>
-<<<<<<< HEAD
- <Files/>
- <MSP430CrossStudioWindow activeProject="FET430P140_C_Project_1" moduleClockControl="24791" autoConnectTarget="" debugSearchFileMap="" fileDialogInitialDirectory="" fileDialogDefaultFilter="*.c;*.h" haltTimerA="false" autoConnectCapabilities="0" haltTimerB="false" holdBasicTimer="false" generalClockControl="46" debugSearchPath="" buildConfiguration="Debug" />
-=======
  <Files>
-  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="34" debugPath="D:\Github\GPS\main.c" y="43" useHTMLEdit="0" path="D:\Github\GPS\main.c" left="0" selected="0" name="unnamed" top="0" />
-  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="d:\github\gps\codeminimal_ecran_usb.c" y="0" useHTMLEdit="0" path="d:\github\gps\codeminimal_ecran_usb.c" left="0" selected="0" name="unnamed" top="60" />
-  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="D:\Github\GPS\adafruit_GPS.h" y="25" useHTMLEdit="0" path="D:\Github\GPS\adafruit_GPS.h" left="0" selected="0" name="unnamed" top="76" />
-  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="D:\Github\GPS\ports.h" y="0" useHTMLEdit="0" path="D:\Github\GPS\ports.h" left="0" selected="0" name="unnamed" top="0" />
-  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="D:\Github\GPS\ecran.c" y="25" useHTMLEdit="0" path="D:\Github\GPS\ecran.c" left="0" selected="0" name="unnamed" top="0" />
-  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="D:\Github\GPS\ecran.h" y="28" useHTMLEdit="0" path="D:\Github\GPS\ecran.h" left="0" selected="0" name="unnamed" top="14" />
-  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="D:\Github\GPS\adafruit_GPS.c" y="0" useHTMLEdit="0" path="D:\Github\GPS\adafruit_GPS.c" left="0" selected="1" name="unnamed" top="348" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="D:\Github\GPS\main.c" y="26" useHTMLEdit="0" path="D:\Github\GPS\main.c" left="0" selected="1" name="unnamed" top="1" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="4" debugPath="D:\Github\GPS\ecran.c" y="27" useHTMLEdit="0" path="D:\Github\GPS\ecran.c" left="0" selected="0" name="unnamed" top="3" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="23" debugPath="D:\Github\GPS\ecran.h" y="5" useHTMLEdit="0" path="D:\Github\GPS\ecran.h" left="0" selected="0" name="unnamed" top="0" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="D:\Github\GPS\adafruit_GPS.c" y="0" useHTMLEdit="0" path="D:\Github\GPS\adafruit_GPS.c" left="0" selected="0" name="unnamed" top="0" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="41" debugPath="D:\Github\GPS\adafruit_GPS.h" y="78" useHTMLEdit="0" path="D:\Github\GPS\adafruit_GPS.h" left="0" selected="0" name="unnamed" top="56" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="d:\github\gps\tools.c" y="60" useHTMLEdit="0" path="d:\github\gps\tools.c" left="0" selected="0" name="unnamed" top="57" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="19" debugPath="d:\github\gps\uart.h" y="17" useHTMLEdit="0" path="d:\github\gps\uart.h" left="0" selected="0" name="unnamed" top="0" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="6" debugPath="d:\github\gps\GPS.c" y="19" useHTMLEdit="0" path="d:\github\gps\GPS.c" left="0" selected="0" name="unnamed" top="0" />
  </Files>
- <MSP430CrossStudioWindow activeProject="FET430P140_C_Project_1" moduleClockControl="24791" autoConnectTarget="/Olimex MSP430-JTAG" debugSearchFileMap="" fileDialogInitialDirectory="D:\Github\GPS\lib" fileDialogDefaultFilter="" haltTimerA="false" autoConnectCapabilities="1407" haltTimerB="false" holdBasicTimer="false" generalClockControl="46" debugSearchPath="" buildConfiguration="Debug" />
->>>>>>> origin/master
+ <MSP430CrossStudioWindow activeProject="FET430P140_C_Project_1" moduleClockControl="24791" autoConnectTarget="/Olimex MSP430-JTAG" debugSearchFileMap="" fileDialogInitialDirectory="D:\Github\GPS" fileDialogDefaultFilter="" haltTimerA="false" autoConnectCapabilities="1407" haltTimerB="false" holdBasicTimer="false" generalClockControl="46" debugSearchPath="" buildConfiguration="Debug" />
 </session>

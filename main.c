@@ -43,7 +43,7 @@ void main(void)
 
   // Reset de l'�cran
   P4OUT = 0x04; // Reset �ran
-  for (i = 0x0F; i > 0; i--);
+  for (i = 0xFF; i > 0; i--);
   P4OUT = 0x06; // Remise �ran
 
   P1OUT = 0x00; // Eteint les leds (chiant qd allumé)
@@ -61,7 +61,7 @@ void main(void)
 
   _EINT(); // Interrupt ON
 
-  chartoHex("test");
+  led_centre(1);
   delay(500);
   //reverse screen
   screenReverse();
