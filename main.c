@@ -12,7 +12,7 @@ volatile char g = 0;
 char trame[200];
 volatile int compteur = 0;
 volatile int ok = 0;
-char *type; // A VIRER
+char *type;
 
 void main(void)
 {
@@ -30,7 +30,7 @@ void main(void)
   }
   while ((IFG1 & OFIFG) != 0);          // OSCFault flag still set?  
 
-  BCSCTL2 |= SELM1+SELS;                // MCLK = SMCLK = XT2 (safe)
+  BCSCTL2 |= SELM1+SELS+DIVM1;                // MCLK = SMCLK = XT2 (safe)
 
   initPorts();
   initUart0();
@@ -47,7 +47,6 @@ void main(void)
   sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
   sendCommand(PMTK_SET_NMEA_OUTPUT_OFF);
   sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
-  debug_printf("\nMONSLASHR:\r");
 
   _EINT(); // Interrupt ON
 
@@ -58,8 +57,6 @@ void main(void)
       _DINT();
       debug_printf("\nMATRAME %s\n", trame);
       ok = 0;
-
-
       if (parse(trame, &data))
       {
         #ifdef _DEBUG
@@ -95,8 +92,6 @@ void main(void)
                         data.fixquality, data.satellites);
         #endif
       }
-
-
       _EINT();
     }
   }
@@ -106,7 +101,7 @@ void usart0_rx (void) __interrupt[UART0RX_VECTOR]
 {
   //while ((IFG2 & UTXIFG1) == 0);
   //TXBUF1 = RXBUF0;
-  //read();
+
   while (!(IFG1 & URXIFG0));
   g = RXBUF0;
 
@@ -139,17 +134,17 @@ void bouton_push (void) __interrupt[PORT2_VECTOR]
 {
   if(P2IFG & 0x01) // Push
   {
-    if((P2IES & 0x01)); // Pressé
+    if((P2IES & 0x01)) P1OUT = 0x01; // Pressé
     else; // Relaché
   }
   if(P2IFG & 0x02) // Top
   {
-    if((P2IES & 0x02));
+    if((P2IES & 0x02)) P1OUT = 0x02;
     else;
   }
   if(P2IFG & 0x04) // Bottom
   {
-    if((P2IES & 0x04));
+    if((P2IES & 0x04)) P1OUT = 0x04;
     else;
   }
   if(P2IFG & 0x08) // Left
