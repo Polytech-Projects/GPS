@@ -37,3 +37,7 @@
 
 # Directories
 Debug/
+
+*.hzo
+
+Release/
