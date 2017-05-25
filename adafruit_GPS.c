@@ -20,17 +20,26 @@ All text above must be included in any redistribution
   #include <__cross_studio_io.h>
 #endif
 
-// how long are max NMEA lines to parse?
+// how long are max NMEA lines to parse
 #define MAXLINELENGTH 200
 
-static uint8_t paused;
+/************ DONNES GLOBAL *************/
+GPS_Data *old_data = 0, *last_data = 0;
+volatile uint8_t nmea_received = 0;
+
+/************ DONNES STATIC *************/
+static GPS_Data data_1, data_2;
 static uint8_t inStandbyMode;
+static volatile char g = 0;
+static char trame[200]; //trame
+static volatile uint8_t compteur = 0;
 /************** PROTOTYPE FONCTIONS PRIVEE *****************/
 static uint8_t parseResponse(char *response);
 static uint8_t isAlpha(char c);
 static uint8_t isDigit(char c);
 static float degToRad(float x); 
 static float radToDeg(float x);
+static void gpsDataInit(GPS_Data *data);
 
 void setGPS(uint8_t on)
 {
@@ -44,7 +53,80 @@ void setGPS(uint8_t on)
   }
 }
 
-uint8_t parse(char *nmea, GPS_Data *data) {
+void gps_init(void)
+{
+  gpsDataInit(&data_1);
+  gpsDataInit(&data_2);
+  old_data = &data_1;
+  last_data = &data_2;
+  inStandbyMode = 0;
+}
+
+void gps_read(void)
+{
+  while (!(IFG1 & URXIFG0));
+  g = RXBUF0;
+
+  if (g == '$')
+  {
+    compteur = 1;
+    trame[0] = g;
+    while (g != '\n')
+    {
+      while (!(IFG1 & URXIFG0));
+      g = RXBUF0;
+      if (compteur < 200)
+      {
+        trame[compteur] = g;
+        compteur++;
+      }
+    }
+    trame[compteur-1] = '\0';
+    nmea_received = 1;
+  }
+}
+
+void gps_debug_trame(void)
+{
+  debug_printf("\nMATRAME %s\n", trame);
+}
+void gps_debug_parse(void)
+{
+  char *type;
+
+  if (last_data->type == GGA)
+  {
+    type = "gga";
+  }
+  else if (last_data->type == RMC)
+    type = "rmc";
+  else
+    type = "inc";
+    debug_printf("\nParsed: type: %s\n\
+                  hours(%d) minutes(%d) seconds(%d) year(%d) month(%d) day(%d)\n\
+                  milliseconds(%d)\n\
+                  latitude(%f) longitude(%f)\n\
+                  latitude_fixed(%d) longitude_fixed(%d)\n\
+                  latitudeDegrees(%f) longitudeDegrees(%f)\n\
+                  geoidheight(%f) altitude(%f)\n\
+                  speed(%f) angle(%f) magvariation(%f) HDOP(%f)\n\
+                  lat(%d) lon(%d) mag(%d)\n\
+                  fix(%d)\n\
+                  fixquality(%d) satellites(%d)\n",
+                  type,
+                  last_data->hour, last_data->minute, last_data->seconds, last_data->year, last_data->month, last_data->day,
+                  last_data->milliseconds,
+                  last_data->latitude, last_data->longitude,
+                  last_data->latitude_fixed, last_data->longitude_fixed,
+                  last_data->latitudeDegrees, last_data->longitudeDegrees,
+                  last_data->geoidheight, last_data->altitude,
+                  last_data->speed, last_data->angle, last_data->magvariation, last_data->HDOP,
+                  last_data->lat, last_data->lon, last_data->mag,
+                  last_data->fix,
+                  last_data->fixquality, last_data->satellites);
+}
+
+uint8_t gps_parse(void) {
   uint16_t sum; // checksum
   uint8_t i; // compteur boucle
   int32_t degree;
@@ -55,22 +137,34 @@ uint8_t parse(char *nmea, GPS_Data *data) {
   float timef; // temps en float
   uint32_t time; // temps en int
   uint32_t fulldate; // date complète
-  // do checksum check
 
+  nmea_received = 0;
+  if (old_data == &data_1)
+  {
+    old_data = &data_2;
+    last_data = &data_1;
+  }
+  else
+  {
+    old_data = &data_1;
+    last_data = &data_2;
+  }
+
+  // do checksum check
   // first look if we even have one
   // N*41C
-  if (nmea[strlen(nmea)-4] == '*') {
+  if (trame[strlen(trame)-4] == '*') {
     #ifdef _DEBUG
       debug_printf("parse: checksum available (got '*')\n");
-      debug_printf("parse: checksum %c\n", nmea[strlen(nmea)-3]);
-      debug_printf("parse: checksum %c\n", nmea[strlen(nmea)-2]);
+      debug_printf("parse: checksum %c\n", trame[strlen(trame)-3]);
+      debug_printf("parse: checksum %c\n", trame[strlen(trame)-2]);
     #endif
-    sum = parseHex(nmea[strlen(nmea)-3]) * 16;
-    sum += parseHex(nmea[strlen(nmea)-2]);
+    sum = parseHex(trame[strlen(trame)-3]) * 16;
+    sum += parseHex(trame[strlen(trame)-2]);
     
     // check checksum 
-    for (i=1; i < (strlen(nmea)-4); i++) {
-      sum ^= nmea[i];
+    for (i=1; i < (strlen(trame)-4); i++) {
+      sum ^= trame[i];
     }
     if (sum != 0) {
       // bad checksum :(
@@ -84,7 +178,7 @@ uint8_t parse(char *nmea, GPS_Data *data) {
     #endif
   }
   // look for a few common sentences
-  if (strstr(nmea, "$GPGGA")) {
+  if (strstr(trame, "$GPGGA")) {
     // found GGA
     /*
      *
@@ -98,17 +192,17 @@ uint8_t parse(char *nmea, GPS_Data *data) {
      * MLS Altitude en mètre
      * Units
      */
-    data->type = GGA;
-    p = nmea;
+    last_data->type = GGA;
+    p = trame;
     // get time
     p = strchr(p, ',')+1;
     timef = atof(p);
     time = timef;
-    data->hour = time / 10000;
-    data->minute = (time % 10000) / 100;
-    data->seconds = (time % 100);
+    last_data->hour = time / 10000;
+    last_data->minute = (time % 10000) / 100;
+    last_data->seconds = (time % 100);
 
-    data->milliseconds = fmod(timef, 1.0) * 1000;
+    last_data->milliseconds = fmod(timef, 1.0) * 1000;
 
     // parse out latitude
     p = strchr(p, ',')+1;
@@ -123,19 +217,19 @@ uint8_t parse(char *nmea, GPS_Data *data) {
       strncpy(degreebuff + 2, p, 4);
       degreebuff[6] = '\0';
       minutes = 50 * atol(degreebuff) / 3;
-      data->latitude_fixed = degree + minutes;
-      data->latitude = degree / 100000 + minutes * 0.000006F;
-      data->latitudeDegrees = (data->latitude-100*((int)data->latitude/100))/60.0;
-      data->latitudeDegrees += (int)data->latitude/100;
+      last_data->latitude_fixed = degree + minutes;
+      last_data->latitude = degree / 100000 + minutes * 0.000006F;
+      last_data->latitudeDegrees = (last_data->latitude-100*((int)last_data->latitude/100))/60.0;
+      last_data->latitudeDegrees += (int)last_data->latitude/100;
     }
     
     p = strchr(p, ',')+1;
     if (',' != *p)
     {
-      if (p[0] == 'S') data->latitudeDegrees *= -1.0;
-      if (p[0] == 'N') data->lat = 'N';
-      else if (p[0] == 'S') data->lat = 'S';
-      else if (p[0] == ',') data->lat = 0;
+      if (p[0] == 'S') last_data->latitudeDegrees *= -1.0;
+      if (p[0] == 'N') last_data->lat = 'N';
+      else if (p[0] == 'S') last_data->lat = 'S';
+      else if (p[0] == ',') last_data->lat = 0;
       else return 0;
     }
     
@@ -152,75 +246,75 @@ uint8_t parse(char *nmea, GPS_Data *data) {
       strncpy(degreebuff + 2, p, 4);
       degreebuff[6] = '\0';
       minutes = 50 * atol(degreebuff) / 3;
-      data->longitude_fixed = degree + minutes;
-      data->longitude = degree / 100000 + minutes * 0.000006F;
-      data->longitudeDegrees = (data->longitude-100*((int)data->longitude/100))/60.0;
-      data->longitudeDegrees += (int)data->longitude/100;
+      last_data->longitude_fixed = degree + minutes;
+      last_data->longitude = degree / 100000 + minutes * 0.000006F;
+      last_data->longitudeDegrees = (last_data->longitude-100*((int)last_data->longitude/100))/60.0;
+      last_data->longitudeDegrees += (int)last_data->longitude/100;
     }
     
     p = strchr(p, ',')+1;
     if (',' != *p)
     {
-      if (p[0] == 'W') data->longitudeDegrees *= -1.0;
-      if (p[0] == 'W') data->lon = 'W';
-      else if (p[0] == 'E') data->lon = 'E';
-      else if (p[0] == ',') data->lon = 0;
+      if (p[0] == 'W') last_data->longitudeDegrees *= -1.0;
+      if (p[0] == 'W') last_data->lon = 'W';
+      else if (p[0] == 'E') last_data->lon = 'E';
+      else if (p[0] == ',') last_data->lon = 0;
       else return 0;
     }
     
     p = strchr(p, ',')+1;
     if (',' != *p)
     {
-      data->fixquality = atoi(p);
+      last_data->fixquality = atoi(p);
     }
     
     p = strchr(p, ',')+1;
     if (',' != *p)
     {
-      data->satellites = atoi(p);
+      last_data->satellites = atoi(p);
     }
     
     p = strchr(p, ',')+1;
     if (',' != *p)
     {
-      data->HDOP = atof(p);
+      last_data->HDOP = atof(p);
     }
     
     p = strchr(p, ',')+1;
     if (',' != *p)
     {
-      data->altitude = atof(p);
+      last_data->altitude = atof(p);
     }
     
     p = strchr(p, ',')+1;
     p = strchr(p, ',')+1;
     if (',' != *p)
     {
-      data->geoidheight = atof(p);
+      last_data->geoidheight = atof(p);
     }
     return 1;
   }
-  if (strstr(nmea, "$GPRMC")) {
+  if (strstr(trame, "$GPRMC")) {
    // found RMC
-    data->type = RMC;
-    p = nmea;
+    last_data->type = RMC;
+    p = trame;
 
     // get time
     p = strchr(p, ',')+1;
     timef = atof(p);
     time = timef;
-    data->hour = time / 10000;
-    data->minute = (time % 10000) / 100;
-    data->seconds = (time % 100);
+    last_data->hour = time / 10000;
+    last_data->minute = (time % 10000) / 100;
+    last_data->seconds = (time % 100);
 
-    data->milliseconds = fmod(timef, 1.0) * 1000;
+    last_data->milliseconds = fmod(timef, 1.0) * 1000;
 
     p = strchr(p, ',')+1;
     // Serial.println(p);
     if (p[0] == 'A') 
-      data->fix = 1;
+      last_data->fix = 1;
     else if (p[0] == 'V')
-      data->fix = 0;
+      last_data->fix = 0;
     else
       return 0;
 
@@ -237,19 +331,19 @@ uint8_t parse(char *nmea, GPS_Data *data) {
       strncpy(degreebuff + 2, p, 4);
       degreebuff[6] = '\0';
       minutes = 50 * atol(degreebuff) / 3;
-      data->latitude_fixed = degreeL + minutes;
-      data->latitude = degreeL / 100000 + minutes * 0.000006F;
-      data->latitudeDegrees = (data->latitude-100*((int)data->latitude/100))/60.0;
-      data->latitudeDegrees += (int)data->latitude/100;
+      last_data->latitude_fixed = degreeL + minutes;
+      last_data->latitude = degreeL / 100000 + minutes * 0.000006F;
+      last_data->latitudeDegrees = (last_data->latitude-100*((int)last_data->latitude/100))/60.0;
+      last_data->latitudeDegrees += (int)last_data->latitude/100;
     }
     
     p = strchr(p, ',')+1;
     if (',' != *p)
     {
-      if (p[0] == 'S') data->latitudeDegrees *= -1.0;
-      if (p[0] == 'N') data->lat = 'N';
-      else if (p[0] == 'S') data->lat = 'S';
-      else if (p[0] == ',') data->lat = 0;
+      if (p[0] == 'S') last_data->latitudeDegrees *= -1.0;
+      if (p[0] == 'N') last_data->lat = 'N';
+      else if (p[0] == 'S') last_data->lat = 'S';
+      else if (p[0] == ',') last_data->lat = 0;
       else return 0;
     }
     
@@ -266,42 +360,42 @@ uint8_t parse(char *nmea, GPS_Data *data) {
       strncpy(degreebuff + 2, p, 4);
       degreebuff[6] = '\0';
       minutes = 50 * atol(degreebuff) / 3;
-      data->longitude_fixed = degree + minutes;
-      data->longitude = degree / 100000 + minutes * 0.000006F;
-      data->longitudeDegrees = (data->longitude-100*((int)data->longitude/100))/60.0;
-      data->longitudeDegrees += (int)data->longitude/100;
+      last_data->longitude_fixed = degree + minutes;
+      last_data->longitude = degree / 100000 + minutes * 0.000006F;
+      last_data->longitudeDegrees = (last_data->longitude-100*((int)last_data->longitude/100))/60.0;
+      last_data->longitudeDegrees += (int)last_data->longitude/100;
     }
     
     p = strchr(p, ',')+1;
     if (',' != *p)
     {
-      if (p[0] == 'W') data->longitudeDegrees *= -1.0;
-      if (p[0] == 'W') data->lon = 'W';
-      else if (p[0] == 'E') data->lon = 'E';
-      else if (p[0] == ',') data->lon = 0;
+      if (p[0] == 'W') last_data->longitudeDegrees *= -1.0;
+      if (p[0] == 'W') last_data->lon = 'W';
+      else if (p[0] == 'E') last_data->lon = 'E';
+      else if (p[0] == ',') last_data->lon = 0;
       else return 0;
     }
     // speed
     p = strchr(p, ',')+1;
     if (',' != *p)
     {
-      data->speed = atof(p);
+      last_data->speed = atof(p);
     }
     
     // angle
     p = strchr(p, ',')+1;
     if (',' != *p)
     {
-      data->angle = atof(p);
+      last_data->angle = atof(p);
     }
     
     p = strchr(p, ',')+1;
     if (',' != *p)
     {
       fulldate = atof(p);
-      data->day = fulldate / 10000;
-      data->month = (fulldate % 10000) / 100;
-      data->year = (fulldate % 100);
+      last_data->day = fulldate / 10000;
+      last_data->month = (fulldate % 10000) / 100;
+      last_data->year = (fulldate % 100);
     }
     // we dont parse the remaining, yet!
     return 1;
@@ -310,21 +404,7 @@ uint8_t parse(char *nmea, GPS_Data *data) {
   return 0;
 }
 
-// Initialization code used by all constructor types
-void gpsDataInit(GPS_Data *data) {
-  paused      = 0;
-
-  data->type = INCONNU;
-  data->hour = data->minute = data->seconds = data->year = data->month = data->day =
-    data->fixquality = data->satellites = 0; // uint8_t
-  data->lat = data->lon = data->mag = 0; // char
-  data->fix = 0; // uint8_t
-  data->milliseconds = 0; // uint16_t
-  data->latitude = data->longitude = data->geoidheight = data->altitude =
-    data->speed = data->angle = data->magvariation = data->HDOP = 0.0; // float
-}
-
-void sendCommand(const char *str) {
+void gps_send_command(const char *str) {
   int i = 0;
 
   while (str[i] != '\0') {
@@ -339,10 +419,6 @@ void sendCommand(const char *str) {
   #ifdef _DEBUG
     debug_printf("\nGPS: command sent.\n", RXBUF0);
   #endif
-}
-
-void pause(uint8_t p) {
-  paused = p;
 }
 
 // read a Hex value and return the decimal equivalent
@@ -392,7 +468,7 @@ uint8_t waitForSentence(const char *wait4me, uint8_t max) {
 
   uint8_t i=0;
   while (i < max) {
-    if (1) { // TODO l'adapter, plus den newNMEAreceived
+    if (1) { // TODO l'adapter, plus de newNMEAreceived
       //nmea = lastNMEA();
       strncpy(str, nmea, 20);
       str[19] = 0;
@@ -407,12 +483,12 @@ uint8_t waitForSentence(const char *wait4me, uint8_t max) {
 }
 
 uint8_t LOCUS_StartLogger(void) {
-  sendCommand(PMTK_LOCUS_STARTLOG);
+  gps_send_command(PMTK_LOCUS_STARTLOG);
   return waitForSentence(PMTK_LOCUS_STARTSTOPACK, MAXWAITSENTENCE);
 }
 
 uint8_t LOCUS_StopLogger(void) {
-  sendCommand(PMTK_LOCUS_STOPLOG);
+  gps_send_command(PMTK_LOCUS_STOPLOG);
   return waitForSentence(PMTK_LOCUS_STARTSTOPACK, MAXWAITSENTENCE);
 }
 
@@ -421,7 +497,7 @@ uint8_t LOCUS_ReadStatus(LOCUS_Data *locus_data) {
   uint16_t parsed[10];
   uint8_t i;
   char c;
-  sendCommand(PMTK_LOCUS_QUERY_STATUS);
+  gps_send_command(PMTK_LOCUS_QUERY_STATUS);
   
   if (! waitForSentence("$PMTKLOG", MAXWAITSENTENCE))
     return 0;
@@ -471,7 +547,7 @@ uint8_t standby(void) {
   }
   else {
     inStandbyMode = 1;
-    sendCommand(PMTK_STANDBY);
+    gps_send_command(PMTK_STANDBY);
     //return waitForSentence(PMTK_STANDBY_SUCCESS, MAXWAITSENTENCE);  // don't seem to be fast enough to catch the message, or something else just is not working
     return 1;
   }
@@ -480,8 +556,8 @@ uint8_t standby(void) {
 uint8_t wakeup(void) {
   if (inStandbyMode) {
    inStandbyMode = 0;
-    sendCommand("");  // send byte to wake it up
-    return waitForSentence(PMTK_AWAKE, MAXWAITSENTENCE);
+    gps_send_command("");  // send byte to wake it up
+    return 1; //waitForSentence(PMTK_AWAKE, MAXWAITSENTENCE);
   }
   else {
       return 0;  // Returns 0 if not in standby mode, nothing to wakeup
@@ -505,4 +581,16 @@ static float degToRad(float x)
 static float radToDeg(float x)
 {
     return x / 3.14159265 * 180;
+}
+
+// Initialization code used by all constructor types
+static void gpsDataInit(GPS_Data *data) {
+  data->type = INCONNU;
+  data->hour = data->minute = data->seconds = data->year = data->month = data->day =
+    data->fixquality = data->satellites = 0; // uint8_t
+  data->lat = data->lon = data->mag = 0; // char
+  data->fix = 0; // uint8_t
+  data->milliseconds = 0; // uint16_t
+  data->latitude = data->longitude = data->geoidheight = data->altitude =
+    data->speed = data->angle = data->magvariation = data->HDOP = 0.0; // float
 }

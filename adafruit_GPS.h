@@ -115,6 +115,10 @@ typedef struct LOCUS_Data
   uint8_t LOCUS_type, LOCUS_mode, LOCUS_config, LOCUS_interval, LOCUS_distance, LOCUS_speed, LOCUS_status, LOCUS_percent;
 } LOCUS_Data;
 
+/********** DONNES GLOBAL GPS ************/
+extern GPS_Data *old_data, *last_data;
+extern volatile uint8_t nmea_received;
+
 /* Allume le GPS si à on=1
  * S'assure qu'il n'est pas en standby ni en pause.
  */
@@ -125,21 +129,26 @@ void setGPS(uint8_t on);
  * n'éteint pas complétement le GPS, garde le fix? */
 uint8_t wakeup(void);
 uint8_t standby(void);
-// Initialisation de la structure GPS
-void gpsDataInit(GPS_Data *data);
+void gps_init(void); // TODO: surtout pour les pointeurs data
 // Envoi d'une commande au GPS
-void sendCommand(const char *);
-// Met en la lecture, la fonction read renvoi 0
-void pause(uint8_t b);
+void gps_send_command(const char *);
 // Converti de l'hexadecimal vers decimal
 uint8_t parseHex(char c);
 // Renvoi la distance en kms/m ? entre 2 points
 float calculDistance(float la1, float lo1, float la2, float lo2);
 uint16_t calculOrientation(float x1, float y1, float x2, float y2);
+// Li une trame complète lorsque le caractère '$' est détecté
+void gps_read(void);
+// Affiche la dernière trame recu
+void gps_debug_trame(void);
+// Affiche les dernières données parsé.
+void gps_debug_parse(void);
 // Renvoi 1 si NMEA détecté
-uint8_t parse(char *, GPS_Data *data);
+uint8_t gps_parse(void);
 // Attend la phrase passé pour un temps voulu
 uint8_t waitForSentence(const char *wait, uint8_t max);
+void gps_boussole(GPS_Data *data);
+void gps_distance(GPS_Data *data);
 
 uint8_t LOCUS_StartLogger(void);
 uint8_t LOCUS_StopLogger(void);
