@@ -23,26 +23,14 @@ All text above must be included in any redistribution
 // how long are max NMEA lines to parse?
 #define MAXLINELENGTH 200
 
-// VOLATILE BEGIN
-// we double buffer: read one line in and leave one for the main program
-volatile char line1[MAXLINELENGTH];
-volatile char line2[MAXLINELENGTH];
-// our index into filling the current line
-volatile uint8_t lineidx=0;
-// pointers to the double buffers
-volatile char *currentline;
-volatile char *lastline;
-volatile uint8_t recvdflag;
-volatile uint8_t inStandbyMode;
-
-// VOLATILE END
-
 static uint8_t paused;
-
+static uint8_t inStandbyMode;
 /************** PROTOTYPE FONCTIONS PRIVEE *****************/
 static uint8_t parseResponse(char *response);
 static uint8_t isAlpha(char c);
 static uint8_t isDigit(char c);
+static float degToRad(float x); 
+static float radToDeg(float x);
 
 void setGPS(uint8_t on)
 {
@@ -98,6 +86,18 @@ uint8_t parse(char *nmea, GPS_Data *data) {
   // look for a few common sentences
   if (strstr(nmea, "$GPGGA")) {
     // found GGA
+    /*
+     *
+     * UTC position (heure?)
+     * Latitude (ddmm.mmmm)
+     * Nord/Sud indicateur
+     * longitude (dddmm.mmmm)
+     * Est/West
+     * Positin fix (0,1,2,3|pas valide, reste valide)
+     * HDOP (Horizontal Dilution of Precision)
+     * MLS Altitude en mètre
+     * Units
+     */
     data->type = GGA;
     p = nmea;
     // get time
@@ -310,55 +310,9 @@ uint8_t parse(char *nmea, GPS_Data *data) {
   return 0;
 }
 
-char read(void) {
-  char c = 0;
-  
-  if (paused) return c;
-
-  /* LIRE LE BUFFER ? (READY?), not ready, return c;
-     c = BUFFER;
-  */
-  while (!(IFG1 & URXIFG0));
-  c = RXBUF0;
-
-  //Serial.print(c);
-
-//  if (c == '$') {         //please don't eat the dollar sign - rdl 9/15/14
-//    currentline[lineidx] = 0;
-//    lineidx = 0;
-//  }
-  if (c == '\n') {
-    currentline[lineidx] = 0;
-
-    if (currentline == line1) {
-      currentline = line2;
-      lastline = line1;
-    } else {
-      currentline = line1;
-      lastline = line2;
-    }
-
-    //Serial.println("----");
-    //Serial.println((char *)lastline);
-    //Serial.println("----");
-    lineidx = 0;
-    recvdflag = 1;
-  }
-
-  currentline[lineidx++] = c;
-  if (lineidx >= MAXLINELENGTH)
-    lineidx = MAXLINELENGTH-1;
-
-  return c;
-}
-
 // Initialization code used by all constructor types
 void gpsDataInit(GPS_Data *data) {
-  recvdflag   = 0;
   paused      = 0;
-  lineidx     = 0;
-  currentline = line1;
-  lastline    = line2;
 
   data->type = INCONNU;
   data->hour = data->minute = data->seconds = data->year = data->month = data->day =
@@ -387,17 +341,8 @@ void sendCommand(const char *str) {
   #endif
 }
 
-uint8_t newNMEAreceived(void) {
-  return recvdflag;
-}
-
 void pause(uint8_t p) {
   paused = p;
-}
-
-char *lastNMEA(void) {
-  recvdflag = 0;
-  return (char *)lastline;
 }
 
 // read a Hex value and return the decimal equivalent
@@ -414,14 +359,41 @@ uint8_t parseHex(char c) {
     return 0;
 }
 
+float calculDistance(float la1, float lo1, float la2, float lo2)
+{
+  float radius = 6317e3; // moyenne du rayon de la terre en mètre
+  float deltaLat, deltaLon, a, c;
+
+  // Calcul des delta avant conversion en radian
+  deltaLat = degToRad(la2-la1);
+  deltaLon = degToRad(lo2-lo1);
+
+  // Besoin de tout avoir en radian
+  la1 = degToRad(la1);
+  lo1 = degToRad(lo1);
+  la2 = degToRad(la2);
+  lo2 = degToRad(lo2);
+
+  // Racine carré de la moitié de la longueur de l'accord entre les 2 points
+  a = sin(deltaLat/2)*sin(deltaLat/2) + cos(la1)*cos(la2) * sin(deltaLon/2)*sin(deltaLon/2);
+  // Distance angulaire en radian
+  c = 2*atan2(sqrt(a), sqrt(1-a));
+  return radius*c;
+}
+
+uint16_t calculOrientation(float x1, float y1, float x2, float y2)
+{
+  return atan2((y1-y2), (x1-x2)) * 180 / 3.14159265;
+}
+
 uint8_t waitForSentence(const char *wait4me, uint8_t max) {
   char str[20];
   char *nmea;
 
   uint8_t i=0;
   while (i < max) {
-    if (newNMEAreceived()) { 
-      nmea = lastNMEA();
+    if (1) { // TODO l'adapter, plus den newNMEAreceived
+      //nmea = lastNMEA();
       strncpy(str, nmea, 20);
       str[19] = 0;
       i++;
@@ -436,13 +408,11 @@ uint8_t waitForSentence(const char *wait4me, uint8_t max) {
 
 uint8_t LOCUS_StartLogger(void) {
   sendCommand(PMTK_LOCUS_STARTLOG);
-  recvdflag = 0;
   return waitForSentence(PMTK_LOCUS_STARTSTOPACK, MAXWAITSENTENCE);
 }
 
 uint8_t LOCUS_StopLogger(void) {
   sendCommand(PMTK_LOCUS_STOPLOG);
-  recvdflag = 0;
   return waitForSentence(PMTK_LOCUS_STARTSTOPACK, MAXWAITSENTENCE);
 }
 
@@ -456,7 +426,7 @@ uint8_t LOCUS_ReadStatus(LOCUS_Data *locus_data) {
   if (! waitForSentence("$PMTKLOG", MAXWAITSENTENCE))
     return 0;
 
-  response = lastNMEA();
+  //response = lastNMEA();
   
   for (i=0; i<10; i++) parsed[i] = -1;
   
@@ -525,4 +495,14 @@ static uint8_t isAlpha(char c)
 static uint8_t isDigit(char c)
 {
   return (c >= '0' && c <= '9') ? 1 : 0;
+}
+
+static float degToRad(float x)
+{
+    return x / 180 * 3.14159265;
+}
+ 
+static float radToDeg(float x)
+{
+    return x / 3.14159265 * 180;
 }
