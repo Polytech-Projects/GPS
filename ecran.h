@@ -6,6 +6,9 @@ void MainMenu(void);
 void screenReverse(void);
 void delay(int i);
 void BoussoleMenu(void);
+void enregistrementMenu(void);
+void navigationMenu(void);
+void changeBoussoleOrientation(int degres);
 
 static char clear[] = {0xFF,0xD7};
 static char landscapeR[] = {0xFF,0x68, 0x00,0x01};

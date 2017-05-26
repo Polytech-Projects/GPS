@@ -10,6 +10,7 @@
 #include "pad.h"
 #include "led.h"
 #include "tools.h"
+#include <math.h>
 
 
 GPS_Data data;
@@ -23,8 +24,9 @@ void main(void)
 {
   unsigned int i;
   int j;
+  float degres;
   /* Le watchdog doit ?re d?activ?pour ne pas provoquer de red?arrage */
-  WDTCTL = WDTPW + WDTHOLD;             // Stop WDT (watch dog timer)
+   WDTCTL = WDTPW + WDTHOLD;             // Stop WDT (watch dog timer)
   BCSCTL1 &= ~XT2OFF;                   // XT2on
 
   do
@@ -43,11 +45,11 @@ void main(void)
 
   // Reset de l'�cran
   P4OUT = 0x04; // Reset �ran
-  for (i = 0xFF; i > 0; i--);
+  for (i = 0x0F; i > 0; i--);
   P4OUT = 0x06; // Remise �ran
 
   P1OUT = 0x00; // Eteint les leds (chiant qd allumé)
-
+  
   gpsDataInit(&data);
   setCmdSwitch(GPS);
   //setCmdSwitch(USB);
@@ -60,9 +62,10 @@ void main(void)
   sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
 
   _EINT(); // Interrupt ON
-
+  degres = cos(180);
+  debug_printf("%f\n", degres);
   led_centre(1);
-  delay(500);
+  delay(1000);
   //reverse screen
   screenReverse();
   // stop scroll
@@ -70,64 +73,6 @@ void main(void)
   MainMenu();
 
   for(;;);
-  /*for (;;)
-  {
-    if (ok)
-    {
-      _DINT();
-      debug_printf("\nMATRAME %s\n", trame);
-      ok = 0;
-
-
-if (parse(trame, &data))
-      {
-        #ifdef _DEBUG
-        if (data.type == GGA)
-        {
-          type = "gga";
-        }
-        else if (data.type == RMC)
-          type = "rmc";
-        else
-          type = "inc";
-          debug_printf("\nParsed: type: %s\n\
-                        hours(%d) minutes(%d) seconds(%d) year(%d) month(%d) day(%d)\n\
-                        milliseconds(%d)\n\
-                        latitude(%f) longitude(%f)\n\
-                        latitude_fixed(%d) longitude_fixed(%d)\n\
-                        latitudeDegrees(%f) longitudeDegrees(%f)\n\
-                        geoidheight(%f) altitude(%f)\n\
-                        speed(%f) angle(%f) magvariation(%f) HDOP(%f)\n\
-                        lat(%d) lon(%d) mag(%d)\n\
-                        fix(%d)\n\
-                        fixquality(%d) satellites(%d)\n",
-                        type,
-                        data.hour, data.minute, data.seconds, data.year, data.month, data.day,
-                        data.milliseconds,
-                        data.latitude, data.longitude,
-                        data.latitude_fixed, data.longitude_fixed,
-                        data.latitudeDegrees, data.longitudeDegrees,
-                        data.geoidheight, data.altitude,
-                        data.speed, data.angle, data.magvariation, data.HDOP,
-                        data.lat, data.lon, data.mag,
-                        data.fix,
-                        data.fixquality, data.satellites);
-        #endif
-      }
-
-
-_EINT();
-    }
-    if (newNMEAreceived())
-    {
-      _DINT();
-      #ifdef _DEBUG
-        debug_printf("\nNew NMEA: %s\n", lastNMEA());
-      #endif
-      //MACHING ICI
-      _EINT();
-    }
-  }*/
 }
 
 void usart0_rx (void) __interrupt[UART0RX_VECTOR]
@@ -137,7 +82,7 @@ void usart0_rx (void) __interrupt[UART0RX_VECTOR]
   //while ((IFG2 & UTXIFG1) == 0);
   //TXBUF1 = RXBUF0;
   //-----------------------------
-  while (!(IFG1 & URXIFG0));
+  /*while (!(IFG1 & URXIFG0));
   g = RXBUF0;
 
   if (g == '$')
@@ -156,7 +101,7 @@ void usart0_rx (void) __interrupt[UART0RX_VECTOR]
     }
     trame[compteur-1] = '\0';
     ok = 1;
-  }
+  }*/
 }
 
 void usart1_rx (void) __interrupt[UART1RX_VECTOR]
