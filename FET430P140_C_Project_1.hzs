@@ -52,14 +52,15 @@
   <Watches active="0" />
  </Watch4>
  <Files>
-  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="D:\Github\GPS\main.c" y="26" useHTMLEdit="0" path="D:\Github\GPS\main.c" left="0" selected="1" name="unnamed" top="1" />
-  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="4" debugPath="D:\Github\GPS\ecran.c" y="27" useHTMLEdit="0" path="D:\Github\GPS\ecran.c" left="0" selected="0" name="unnamed" top="3" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="D:\Github\GPS\main.c" y="27" useHTMLEdit="0" path="D:\Github\GPS\main.c" left="0" selected="1" name="unnamed" top="27" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="2" debugPath="D:\Github\GPS\ecran.c" y="213" useHTMLEdit="0" path="D:\Github\GPS\ecran.c" left="0" selected="0" name="unnamed" top="234" />
   <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="23" debugPath="D:\Github\GPS\ecran.h" y="5" useHTMLEdit="0" path="D:\Github\GPS\ecran.h" left="0" selected="0" name="unnamed" top="0" />
-  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="D:\Github\GPS\adafruit_GPS.c" y="0" useHTMLEdit="0" path="D:\Github\GPS\adafruit_GPS.c" left="0" selected="0" name="unnamed" top="0" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="D:\Github\GPS\adafruit_GPS.c" y="50" useHTMLEdit="0" path="D:\Github\GPS\adafruit_GPS.c" left="0" selected="0" name="unnamed" top="81" />
   <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="41" debugPath="D:\Github\GPS\adafruit_GPS.h" y="78" useHTMLEdit="0" path="D:\Github\GPS\adafruit_GPS.h" left="0" selected="0" name="unnamed" top="56" />
-  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="d:\github\gps\tools.c" y="60" useHTMLEdit="0" path="d:\github\gps\tools.c" left="0" selected="0" name="unnamed" top="57" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="0" debugPath="d:\github\gps\tools.c" y="33" useHTMLEdit="0" path="d:\github\gps\tools.c" left="0" selected="0" name="unnamed" top="24" />
   <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="19" debugPath="d:\github\gps\uart.h" y="17" useHTMLEdit="0" path="d:\github\gps\uart.h" left="0" selected="0" name="unnamed" top="0" />
   <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="6" debugPath="d:\github\gps\GPS.c" y="19" useHTMLEdit="0" path="d:\github\gps\GPS.c" left="0" selected="0" name="unnamed" top="0" />
+  <SessionOpenFile useTextEdit="1" useBinaryEdit="0" x="66" debugPath="D:\Github\GPS\tools.h" y="2" useHTMLEdit="0" path="D:\Github\GPS\tools.h" left="0" selected="0" name="unnamed" top="0" />
  </Files>
- <MSP430CrossStudioWindow activeProject="FET430P140_C_Project_1" moduleClockControl="24791" autoConnectTarget="/Olimex MSP430-JTAG" debugSearchFileMap="" fileDialogInitialDirectory="D:\Github\GPS" fileDialogDefaultFilter="" haltTimerA="false" autoConnectCapabilities="1407" haltTimerB="false" holdBasicTimer="false" generalClockControl="46" debugSearchPath="" buildConfiguration="Debug" />
+ <MSP430CrossStudioWindow activeProject="FET430P140_C_Project_1" moduleClockControl="24791" autoConnectTarget="/Olimex MSP430-JTAG" debugSearchFileMap="" fileDialogInitialDirectory="D:\Github\GPS" fileDialogDefaultFilter="*.c;*.h" haltTimerA="false" autoConnectCapabilities="1407" haltTimerB="false" holdBasicTimer="false" generalClockControl="46" debugSearchPath="" buildConfiguration="Debug" />
 </session>

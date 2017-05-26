@@ -10,6 +10,7 @@
 #include "pad.h"
 #include "led.h"
 #include "tools.h"
+#include <math.h>
 
 typedef enum Mode {
   MAINMENU, BOUSSOLE
@@ -21,8 +22,9 @@ void main(void)
 {
   unsigned int i;
   int j;
+  float degres;
   /* Le watchdog doit ?re d?activ?pour ne pas provoquer de red?arrage */
-  WDTCTL = WDTPW + WDTHOLD;             // Stop WDT (watch dog timer)
+   WDTCTL = WDTPW + WDTHOLD;             // Stop WDT (watch dog timer)
   BCSCTL1 &= ~XT2OFF;                   // XT2on
 
   do
@@ -42,7 +44,7 @@ void main(void)
 
   // Reset de l'�cran
   P4OUT = 0x04; // Reset �ran
-  for (i = 0xFF; i > 0; i--);
+  for (i = 0x0F; i > 0; i--);
   P4OUT = 0x06; // Remise �ran
 
   P1OUT = 0x00; // Eteint les leds (chiant qd allumé)
@@ -58,15 +60,18 @@ void main(void)
   gps_send_command(PMTK_SET_NMEA_OUTPUT_OFF);
   gps_send_command(PMTK_SET_NMEA_OUTPUT_RMCGGA);
 
+  degres = cos(180);
+  debug_printf("%f\n", degres);
+  
   led_centre(1);
-  delay(500);
+  delay(1000);
   //reverse screen
   screenReverse();
   // stop scroll
   sendCommandScreen("000C0000");
   MainMenu();
-
   _EINT(); // Interrupt ON
+  
   for (;;)
   {
     if (nmea_received)
