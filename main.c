@@ -12,13 +12,11 @@
 #include "tools.h"
 #include <math.h>
 
+typedef enum Mode {
+  MAINMENU, BOUSSOLE
+} Mode;
 
-GPS_Data data;
-volatile char g = 0;
-char trame[200];
-volatile int compteur = 0;
-volatile int ok = 0;
-char *type;
+Mode mode = MAINMENU;
 
 void main(void)
 {
@@ -50,21 +48,21 @@ void main(void)
   P4OUT = 0x06; // Remise �ran
 
   P1OUT = 0x00; // Eteint les leds (chiant qd allumé)
-  
-  gpsDataInit(&data);
+
+  gps_init();
   setCmdSwitch(GPS);
   //setCmdSwitch(USB);
   setGPS(1);
   wakeup();
 
-  sendCommand(PMTK_SET_BAUD_9600);
-  sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
-  sendCommand(PMTK_SET_NMEA_OUTPUT_OFF);
-  sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  gps_send_command(PMTK_SET_BAUD_9600);
+  gps_send_command(PMTK_SET_NMEA_UPDATE_1HZ);
+  gps_send_command(PMTK_SET_NMEA_OUTPUT_OFF);
+  gps_send_command(PMTK_SET_NMEA_OUTPUT_RMCGGA);
 
-  _EINT(); // Interrupt ON
   degres = cos(180);
   debug_printf("%f\n", degres);
+  
   led_centre(1);
   delay(1000);
   //reverse screen
@@ -72,56 +70,31 @@ void main(void)
   // stop scroll
   sendCommandScreen("000C0000");
   MainMenu();
-
-<<<<<<< HEAD
-  for(;;);
-=======
+  _EINT(); // Interrupt ON
+  
   for (;;)
   {
-    if (ok)
+    if (nmea_received)
     {
       _DINT();
-      debug_printf("\nMATRAME %s\n", trame);
-      ok = 0;
-      if (parse(trame, &data))
+      #ifdef _DEBUG
+        gps_debug_trame();
+      #endif
+      if (gps_parse())
       {
         #ifdef _DEBUG
-        if (data.type == GGA)
-        {
-          type = "gga";
-        }
-        else if (data.type == RMC)
-          type = "rmc";
-        else
-          type = "inc";
-          debug_printf("\nParsed: type: %s\n\
-                        hours(%d) minutes(%d) seconds(%d) year(%d) month(%d) day(%d)\n\
-                        milliseconds(%d)\n\
-                        latitude(%f) longitude(%f)\n\
-                        latitude_fixed(%d) longitude_fixed(%d)\n\
-                        latitudeDegrees(%f) longitudeDegrees(%f)\n\
-                        geoidheight(%f) altitude(%f)\n\
-                        speed(%f) angle(%f) magvariation(%f) HDOP(%f)\n\
-                        lat(%d) lon(%d) mag(%d)\n\
-                        fix(%d)\n\
-                        fixquality(%d) satellites(%d)\n",
-                        type,
-                        data.hour, data.minute, data.seconds, data.year, data.month, data.day,
-                        data.milliseconds,
-                        data.latitude, data.longitude,
-                        data.latitude_fixed, data.longitude_fixed,
-                        data.latitudeDegrees, data.longitudeDegrees,
-                        data.geoidheight, data.altitude,
-                        data.speed, data.angle, data.magvariation, data.HDOP,
-                        data.lat, data.lon, data.mag,
-                        data.fix,
-                        data.fixquality, data.satellites);
+          gps_debug_parse();
         #endif
+        switch (mode) {
+          case MAINMENU:
+          break;
+          case BOUSSOLE:
+          break;
+        }
       }
       _EINT();
     }
   }
->>>>>>> origin/master
 }
 
 void usart0_rx (void) __interrupt[UART0RX_VECTOR]
@@ -130,31 +103,7 @@ void usart0_rx (void) __interrupt[UART0RX_VECTOR]
   //-----------------------------
   //while ((IFG2 & UTXIFG1) == 0);
   //TXBUF1 = RXBUF0;
-<<<<<<< HEAD
-  //-----------------------------
-  /*while (!(IFG1 & URXIFG0));
-=======
-  while (!(IFG1 & URXIFG0));
->>>>>>> origin/master
-  g = RXBUF0;
-
-  if (g == '$')
-  {
-    compteur = 1;
-    trame[0] = g;
-    while (g != '\n')
-    {
-      while (!(IFG1 & URXIFG0));
-      g = RXBUF0;
-      if (compteur < 200)
-      {
-        trame[compteur] = g;
-        compteur++;
-      }
-    }
-    trame[compteur-1] = '\0';
-    ok = 1;
-  }*/
+  gps_read();
 }
 
 void usart1_rx (void) __interrupt[UART1RX_VECTOR]
@@ -184,11 +133,21 @@ void bouton_push (void) __interrupt[PORT2_VECTOR]
   }
   if(P2IFG & 0x08) // Left
   {
-    if((P2IES & 0x08));
+    if((P2IES & 0x08))
+    {
+      standby();
+      MainMenu();
+      mode = MAINMENU;
+    }
     else;
   }
   if(P2IFG & 0x10){ // Right
-    if((P2IES & 0x10));
+    if((P2IES & 0x10))
+    {
+      wakeup();
+      BoussoleMenu();
+      mode = BOUSSOLE;
+    }
     else;
   }
   P2IES ^= P2IFG; // inversion des transition
