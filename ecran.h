@@ -36,3 +36,4 @@ static char tourgris[]={0xc6,0x18};
 
 void clearScreen(void);
 void drawRectangle(char x1,char y1,char x2, char y2, char *couleur);
+void screen_ack(void);

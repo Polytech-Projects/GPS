@@ -8,11 +8,16 @@
   #include <__cross_studio_io.h>
 #endif
 
+static int ack = 0;
+void screen_ack(void)
+{
+  //while (!(IFG1 & URXIFG0));
+  ack = 1;
+}
+
 void sendCommandScreen(const char *str) {
-  int i = 0;
+  unsigned int i = 0;
   char c;
-
-
 
   while (str[i] != '\0') {
     while (!(IFG2 & UTXIFG1));
@@ -25,7 +30,17 @@ void sendCommandScreen(const char *str) {
     U1TXBUF = '\r';
   while (!(IFG2 & UTXIFG1));
     U1TXBUF = '\n';
-  delay(100);
+  //delay(100);
+  // Remplacement delay par ack
+  i=0;
+  ack=0;
+  while (ack == 0 && i<0xFFFF) i++;
+  /*
+  if (i == 0xFFFF)
+  {
+    debug_printf("\nCompteur a fond...\n");
+    debug_printf("\n%s\n", str);
+  } */
 }
 
 void MainMenu(void){
@@ -78,7 +93,7 @@ void MainMenu(void){
   sendCommandScreen("0006426F752D00");
   sendCommandScreen("FFE40008000D");
   sendCommandScreen("000673736F6C6500");
-
+  /*
   while(pad != 1 && pad != 3 && pad != 4){
     pad = WaitPad();
   }
@@ -98,7 +113,7 @@ void MainMenu(void){
       BoussoleMenu();
       break;
     }
-  }
+  } */
 
 }
 
@@ -107,6 +122,7 @@ void clearScreen(void){
 }
 
 void screenReverse(void){
+  //delay(50);
   sendCommandScreen("FF680001");
 }
 
@@ -134,7 +150,7 @@ void changeBackground(char *color){
   strcpy(c,"FF6E");
   strcat(c,color);
   //sendCommandScreen("FF6E31A9");
-  delay(500);
+  //delay(500);
   sendCommandScreen(c);
   clearScreen();
 }
@@ -174,7 +190,7 @@ void BoussoleMenu(void) {
   //de la fonction présente dans GPS.c
 
   changeBoussoleOrientation(180);
-
+/*
   while(pad != 0){
     pad = WaitPad();
   }
@@ -184,7 +200,7 @@ void BoussoleMenu(void) {
       MainMenu();
       break;
     }
-  }
+  } */
 
 }
 
@@ -255,6 +271,7 @@ void navigationMenu(void){
   sendCommandScreen("FFE4000B0000");
   sendCommandScreen("0006706F7572207175697474657200");
 
+/*
   while(pad != 0){
     pad = WaitPad();
   }
@@ -264,7 +281,7 @@ void navigationMenu(void){
       MainMenu();
       break;
     }
-  }
+  } */
 
 }
 
@@ -296,7 +313,7 @@ void enregistrementMenu(void){
   //pour quitter
   sendCommandScreen("FFE4000B0000");
   sendCommandScreen("0006706F7572207175697474657200");
-
+/*
   while(pad != 0){
     pad = WaitPad();
   }
@@ -306,6 +323,6 @@ void enregistrementMenu(void){
       MainMenu();
       break;
     }
-  }
+  } */
 
 }

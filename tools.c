@@ -70,9 +70,9 @@ int WaitPad(void){
   int bs=0x1F,lbs=0x1F,pad;
 
   //setup
-  WDTCTL = WDTPW + WDTHOLD;             // Stop watchdog timer
-  P1DIR |= 0x1F;                        // Set P1.0 to output direction
-  P2DIR |= 0x00;
+  //WDTCTL = WDTPW + WDTHOLD;             // Stop watchdog timer
+  //P1DIR |= 0x1F;                        // Set P1.0 to output direction
+  //P2DIR |= 0x00;
   P1OUT=0x00;
   pad = -1;
 

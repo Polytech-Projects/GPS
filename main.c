@@ -53,24 +53,24 @@ void main(void)
   setCmdSwitch(GPS);
   //setCmdSwitch(USB);
   setGPS(1);
-  wakeup();
 
   gps_send_command(PMTK_SET_BAUD_9600);
   gps_send_command(PMTK_SET_NMEA_UPDATE_1HZ);
   gps_send_command(PMTK_SET_NMEA_OUTPUT_OFF);
   gps_send_command(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  standby();
 
   degres = cos(180);
   debug_printf("%f\n", degres);
   
   led_centre(1);
-  delay(1000);
+  _EINT(); // Interrupt ON
   //reverse screen
-  screenReverse();
+  delay(500);
+  sendCommandScreen("FF680001");
   // stop scroll
   sendCommandScreen("000C0000");
   MainMenu();
-  _EINT(); // Interrupt ON
   
   for (;;)
   {
@@ -112,18 +112,28 @@ void usart1_rx (void) __interrupt[UART1RX_VECTOR]
   //-----------------------------
   //while ((IFG1 & UTXIFG0) == 0);
   //TXBUF0 = RXBUF1;
+  screen_ack();
 }
 
 void bouton_push (void) __interrupt[PORT2_VECTOR] 
 {
+  P2IE &= ~(0x1F);
   if(P2IFG & 0x01) // Push
   {
-    if((P2IES & 0x01)) P1OUT = 0x01; // Pressé
+    if((P2IES & 0x01))
+    { //P1OUT = 0x01; // Pressé
+      standby();
+      MainMenu();
+      mode = MAINMENU;
+    }
     else; // Relaché
   }
   if(P2IFG & 0x02) // Top
   {
-    if((P2IES & 0x02)) P1OUT = 0x02;
+    if((P2IES & 0x02))
+      {//P1OUT = 0x02;
+        enregistrementMenu();
+      }
     else;
   }
   if(P2IFG & 0x04) // Bottom
@@ -135,9 +145,7 @@ void bouton_push (void) __interrupt[PORT2_VECTOR]
   {
     if((P2IES & 0x08))
     {
-      standby();
-      MainMenu();
-      mode = MAINMENU;
+      navigationMenu();
     }
     else;
   }
@@ -152,4 +160,5 @@ void bouton_push (void) __interrupt[PORT2_VECTOR]
   }
   P2IES ^= P2IFG; // inversion des transition
   P2IFG = 0;
+  P2IE |= 0x1F;
 }
